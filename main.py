@@ -54,33 +54,39 @@ async def postDeal(deal, channelID):
 
 
 # Listen for database changes
-def listenToDbChanges():
+async def listenToDbChanges():
     pipeline = [{'$match': {'operationType': 'insert'}}]
-    with legoScraperTable.watch(pipeline) as stream:
-        for change in stream:
-            print("New Lego Deal Detected.")
-            deal = change['fullDocument']
-            dealType = deal['type']
-            channelID = getChannelID(dealType)
-            if channelID:
-                asyncio.run_coroutine_threadsafe(postDeal(deal, channelID), bot.loop)
 
-    with electronicsScraperTable.watch(pipeline) as stream:
-        for change in stream:
-            print("New Electronics Deal Detected.")
-            deal = change['fullDocument']
-            dealType = deal['type']
-            channelID = getChannelID(dealType)
-            if channelID:
-                asyncio.run_coroutine_threadsafe(postDeal(deal, channelID), bot.loop)
+    try:
+        # Watching both collections in a single loop
+        with client.start_session() as session:
+            with legoScraperTable.watch(pipeline, session=session) as lego_stream, \
+                 electronicsScraperTable.watch(pipeline, session=session) as electronics_stream:
+                
+                while True:
+                    # Wait for either stream to have a new document
+                    change = None
+                    while not change:
+                        change = lego_stream.try_next() or electronics_stream.try_next()
+                        await asyncio.sleep(1)
+                    
+                    # Process the change
+                    print("New deal detected.")
+                    deal = change['fullDocument']
+                    deal_type = deal['type']
+                    channel_id = getChannelID(deal_type)
+                    if channel_id:
+                        asyncio.run_coroutine_threadsafe(postDeal(deal, channel_id), bot.loop)
 
+    except Exception as e:
+        print(f"Error listening to database changes: {e}")
 
 
 # Handle Bot Boot.
 @bot.event
 async def on_ready():
     print(f"{bot.user} is now online.")
-    threading.Thread(target=listenToDbChanges, daemon=True).start()
+    threading.Thread(target=lambda: asyncio.run(listenToDbChanges()), daemon=True).start()
 
 
 
