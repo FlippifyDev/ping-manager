@@ -27,6 +27,7 @@ webScrapersTable = db['webscrapers']
 def getChannelID(dealType):
     scraper = productRolesTable.find_one({'deal_type': dealType})
     if scraper:
+        print(f"Fetched Channel ID for {dealType}: {scraper['channel_id']}")
         return scraper['channel_id']
     return None
 
@@ -34,12 +35,20 @@ def getChannelID(dealType):
 
 # Posting deals in discord
 async def postDeal(deal, channelID):
+    print("Preparing to post deal.")
     channel = bot.get_channel(channelID)
     if channel:
-        embed = discord.Embed(title=deal['product_name'], url=deal['link'])
-        embed.add_field(name="Price", value=deal['price'])
-        await channel.send(embed=embed)
-
+        try:
+            print("Found Channel")
+            embed = discord.Embed(title=deal['product_name'], url=deal['link'])
+            embed.add_field(name="Price", value=deal['price'])
+            print("Sending Embed.")
+            await channel.send(embed=embed)
+            print("Embed sent successfully.")
+        except discord.DiscordException as e:
+            print(f"Failed to send embed: {e}")
+    else:
+        print(f"Channel with ID {channelID} not found.")
 
 
 # Listen for database changes
@@ -47,6 +56,7 @@ def listenToDbChanges():
     pipeline = [{'$match': {'operationType': 'insert'}}]
     with webScrapersTable.watch(pipeline) as stream:
         for change in stream:
+            print("New Deal Detected.")
             deal = change['fullDocument']
             dealType = deal['type']
             channelID = getChannelID(dealType)
