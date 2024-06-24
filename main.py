@@ -5,6 +5,7 @@ import threading
 from dotenv import load_dotenv
 from pymongo import MongoClient
 
+
 # Loading Data Securely
 load_dotenv()
 botToken = os.getenv('botToken')
@@ -51,6 +52,7 @@ async def postDeal(deal, channelID):
         print(f"Channel with ID {channelID} not found.")
 
 
+
 # Listen for database changes
 def listenToDbChanges():
     pipeline = [{'$match': {'operationType': 'insert'}}]
@@ -66,6 +68,11 @@ def listenToDbChanges():
     with electronicsScraperTable.watch(pipeline) as stream:
         for change in stream:
             print("New Electronics Deal Detected.")
+            deal = change['fullDocument']
+            dealType = deal['type']
+            channelID = getChannelID(dealType)
+            if channelID:
+                asyncio.run_coroutine_threadsafe(postDeal(deal, channelID), bot.loop)
 
 
 
