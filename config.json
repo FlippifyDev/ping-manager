@@ -1,8 +1,8 @@
 {
-    "lego": {
+    "Lego-Retirement": {
         "fields": ["type", "product_name", "sku", "website", "price", "link", "image", "stock-available", "retirement-date", "timestamp"]
     },
-    "electronics": {
+    "Electronics": {
         "fields": ["product_name", "sku", "website", "price", "link", "image", "stock-available", "timestamp"]
     }
 }

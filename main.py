@@ -24,8 +24,8 @@ legoScraperTable = db['scraper.lego-retirement-deals']
 electronicsScraperTable = db['scraper.electronics']
 
 # Load configuration file
-with open('config.json') as config_file:
-    config = json.load(config_file)
+with open('C:\\Users\\popco\\Desktop\\[CODE]\\ping-manager\\config.json') as configFile:
+    config = json.load(configFile)
 
 
 
