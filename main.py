@@ -2,6 +2,7 @@ import os
 import discord
 import asyncio
 import threading
+import json
 from dotenv import load_dotenv
 from pymongo import MongoClient
 
@@ -22,6 +23,10 @@ productRolesTable = db['products.roles']
 legoScraperTable = db['scraper.lego-retirement-deals']
 electronicsScraperTable = db['scraper.electronics']
 
+# Load configuration file
+with open('config.json') as config_file:
+    config = json.load(config_file)
+
 
 
 # Fetching the discord channel id associated with each type of deal to know where to post deals.
@@ -34,16 +39,25 @@ def getChannelID(dealType):
 
 
 
+# Formatting field names for embeds.
+def formatFieldName(fieldName):
+    return fieldName.replace('_', ' ').capitalize()
+
+
+
 # Posting deals in discord
-async def postDeal(deal, channelID):
+async def postDeal(deal, channelID, fields):
     print("Preparing to post deal.")
     channel = bot.get_channel(channelID)
+
     if channel:
         try:
-            print("Found Channel")
-            embed = discord.Embed(title=deal['product_name'], url=deal['link'])
-            embed.add_field(name="Price", value=deal['price'])
-            print("Sending Embed.")
+            print("Found Channel...")
+            embed = discord.Embed(title=deal.get('product_name', 'Deal Found!'), url=deal.get('link', ''))
+            for field in fields:
+                if field in deal:
+                    embed.add_field(name=formatFieldName(field), value=deal[field], inline=False)
+            print("Sending Embed..")
             await channel.send(embed=embed)
             print("Embed sent successfully.")
         except discord.DiscordException as e:
@@ -58,26 +72,33 @@ async def listenToDbChanges():
     pipeline = [{'$match': {'operationType': 'insert'}}]
 
     try:
-        # Watching both collections in a single loop
-        with client.start_session() as session:
-            with legoScraperTable.watch(pipeline, session=session) as lego_stream, \
-                 electronicsScraperTable.watch(pipeline, session=session) as electronics_stream:
-                
-                while True:
-                    # Wait for either stream to have a new document
-                    change = None
-                    while not change:
-                        change = lego_stream.try_next() or electronics_stream.try_next()
-                        await asyncio.sleep(1)
-                    
-                    # Process the change
-                    print("New deal detected.")
-                    deal = change['fullDocument']
-                    deal_type = deal['type']
-                    channel_id = getChannelID(deal_type)
-                    if channel_id:
-                        asyncio.run_coroutine_threadsafe(postDeal(deal, channel_id), bot.loop)
+        # Fetching all tables to watch from productRolesTable
+        tablesToWatch = productRolesTable.distinct('data_table')
 
+        streams = []
+        with client.start_session() as session:
+            for tableName in tablesToWatch:
+                table = db[tableName]
+                streams.append(table.watch(pipeline, session=session))
+                
+            while True:
+                change = None
+                while not change:
+                    for stream in streams:
+                        change = stream.try_next()
+                        if change:
+                            break
+                    await asyncio.sleep(1)
+                
+                # Process the change
+                print("New deal detected.")
+                deal = change['fullDocument']
+                deal_type = deal['type']
+                channel_id = getChannelID(deal_type)
+                fields = config.get(deal_type, {}).get('fields', [])
+                if channel_id:
+                    asyncio.run_coroutine_threadsafe(postDeal(deal, channel_id, fields), bot.loop)
+                    
     except Exception as e:
         print(f"Error listening to database changes: {e}")
 

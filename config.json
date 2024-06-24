@@ -1,0 +1,8 @@
+{
+    "lego": {
+        "fields": ["type", "product_name", "sku", "website", "price", "link", "image", "stock-available", "retirement-date", "timestamp"]
+    },
+    "electronics": {
+        "fields": ["product_name", "sku", "website", "price", "link", "image", "stock-available", "timestamp"]
+    }
+}
