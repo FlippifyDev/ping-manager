@@ -17,9 +17,9 @@ bot = discord.Client(intents=intents)
 # MongoDB Setup
 client = MongoClient(f"{mongoURL}")
 db = client['flippifyDB']
-userTable = db['users']
 productRolesTable = db['products.roles']
-webScrapersTable = db['webscrapers']
+legoScraperTable = db['scraper.lego-retirement-deals']
+electronicsScraperTable = db['scraper.electronics']
 
 
 
@@ -54,14 +54,18 @@ async def postDeal(deal, channelID):
 # Listen for database changes
 def listenToDbChanges():
     pipeline = [{'$match': {'operationType': 'insert'}}]
-    with webScrapersTable.watch(pipeline) as stream:
+    with legoScraperTable.watch(pipeline) as stream:
         for change in stream:
-            print("New Deal Detected.")
+            print("New Lego Deal Detected.")
             deal = change['fullDocument']
             dealType = deal['type']
             channelID = getChannelID(dealType)
             if channelID:
                 asyncio.run_coroutine_threadsafe(postDeal(deal, channelID), bot.loop)
+
+    with electronicsScraperTable.watch(pipeline) as stream:
+        for change in stream:
+            print("New Electronics Deal Detected.")
 
 
 
