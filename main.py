@@ -20,9 +20,9 @@ bot = discord.Client(intents=intents)
 # MongoDB Setup
 client = MongoClient(f"{mongoURL}")
 db = client['flippifyDB']
-productRolesTable = db['products.roles']
-legoScraperTable = db['scraper.lego-retirement-deals']
-electronicsScraperTable = db['scraper.electronics']
+configProductCollection = db['config.products']
+legoScraperCollection = db['scraper.lego-retirement-deals']
+electronicsScraperCollection = db['scraper.electronics']
 
 # Load configuration file
 with open('C:\\Users\\popco\\Desktop\\[CODE]\\ping-manager\\config.json') as configFile:
@@ -32,7 +32,7 @@ with open('C:\\Users\\popco\\Desktop\\[CODE]\\ping-manager\\config.json') as con
 
 # Fetching the discord channel id associated with each type of deal to know where to post deals.
 def getChannelID(dealType):
-    scraper = productRolesTable.find_one({'deal_type': dealType})
+    scraper = configProductCollection.find_one({'deal_type': dealType})
     if scraper:
         print(f"Fetched Channel ID for {dealType}: {scraper['channel_id']}")
         return scraper['channel_id']
@@ -82,17 +82,17 @@ async def postDeal(deal, channelID, fields):
 
 # Listen for database changes
 async def listenToDbChanges():
-    pipeline = [{'$match': {'operationType': 'insert'}}]
+    pipeline = [{'$match': {'operationType': {'$in': ['insert', 'update']}}}]
 
     try:
-        # Fetching all tables to watch from productRolesTable
-        tablesToWatch = productRolesTable.distinct('data_table')
+        # Fetching all collections to watch from productRolesCollections
+        collectionToWatch = configProductCollection.distinct('data_table')
 
         streams = []
         with client.start_session() as session:
-            for tableName in tablesToWatch:
-                table = db[tableName]
-                streams.append(table.watch(pipeline, session=session))
+            for collectionName in collectionToWatch:
+                collection = db[collectionName]
+                streams.append(collection.watch(pipeline, session=session, full_document="updateLookup"))
                 
             while True:
                 change = None
