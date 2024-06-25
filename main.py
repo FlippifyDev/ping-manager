@@ -5,6 +5,7 @@ import threading
 import json
 from dotenv import load_dotenv
 from pymongo import MongoClient
+from datetime import datetime
 
 
 # Loading Data Securely
@@ -52,12 +53,24 @@ async def postDeal(deal, channelID, fields):
 
     if channel:
         try:
-            print("Found Channel...")
-            embed = discord.Embed(title=deal.get('product_name', 'Deal Found!'), url=deal.get('link', ''))
+            embed = discord.Embed(
+                title=deal.get('product_name', 'Deal Found!'),
+                url=deal.get('link', ''),
+                color=discord.Color.blue(),
+                timestamp=datetime.now()
+                )
+
             for field in fields:
                 if field in deal:
-                    embed.add_field(name=formatFieldName(field), value=deal[field], inline=False)
-            print("Sending Embed..")
+                    print("Field:", field)
+                    if field == 'image':
+                        embed.set_thumbnail(url=deal['image'])
+                        continue
+                    if field == 'timestamp' or field == 'type':
+                        continue
+                    else:
+                        embed.add_field(name=formatFieldName(field), value=deal[field], inline=False)
+            
             await channel.send(embed=embed)
             print("Embed sent successfully.")
         except discord.DiscordException as e:
@@ -101,6 +114,7 @@ async def listenToDbChanges():
                     
     except Exception as e:
         print(f"Error listening to database changes: {e}")
+
 
 
 # Handle Bot Boot.
