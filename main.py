@@ -7,6 +7,10 @@ from dotenv import load_dotenv
 from pymongo import MongoClient
 from datetime import datetime
 
+#loggign func june 25thy
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename='main.log')
 
 # Loading Data Securely
 load_dotenv()
@@ -73,10 +77,13 @@ async def postDeal(deal, channelID, fields):
             
             await channel.send(embed=embed)
             print("Embed sent successfully.")
+            logger.info("")
         except discord.DiscordException as e:
             print(f"Failed to send embed: {e}")
+            logger.error("Error sending embed %s" % e)
     else:
         print(f"Channel with ID {channelID} not found.")
+        logger.error("Channel %s not found" % channelID)
 
 
 
@@ -114,6 +121,7 @@ async def listenToDbChanges():
                     
     except Exception as e:
         print(f"Error listening to database changes: {e}")
+        logger.error("Error listening for database changes %s" % e)
 
 
 
@@ -121,6 +129,7 @@ async def listenToDbChanges():
 @bot.event
 async def on_ready():
     print(f"{bot.user} is now online.")
+    logger.info("Bot is running")
     threading.Thread(target=lambda: asyncio.run(listenToDbChanges()), daemon=True).start()
 
 
