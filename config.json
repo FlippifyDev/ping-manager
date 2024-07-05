@@ -1,8 +1,27 @@
 {
-    "Lego-Retirement": {
-        "fields": ["type", "product_name", "sku", "website", "price", "link", "image", "stock-available", "retirement-date", "timestamp"]
-    },
-    "Electronics": {
-        "fields": ["product_name", "sku", "website", "price", "link", "image", "stock-available", "timestamp"]
+    "Lego-Retirement-Deals": {
+        "title": "**{sku} {product-name}**",
+        "description": "> Sale of {round((100 - (100 * price / rrp)), 2)}%",
+        "color": 16766210,
+        "fields": [
+            {
+                "name": "**Current Price**",
+                "value": "£{price}"
+            },
+            {
+                "name": "**Retail Price**",
+                "value": "£{rrp}"
+            },
+            {
+                "name": "**Links**",
+                "value": "[{website}]({link})"
+            }
+        ],
+        "author": {
+            "name": "Sale on {website}"
+        },
+        "thumbnail": {
+            "url": "{image}"
+        }
     }
 }
