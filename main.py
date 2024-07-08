@@ -33,7 +33,7 @@ with open('config.json') as file:
 
 
 
-def process_ping(before, after):
+def process_ping(before, after, minimum_sale=0.15):
     try:
         # Check conditions for sending a ping
         after_price = after.get('price')
@@ -43,11 +43,12 @@ def process_ping(before, after):
         after_stock_available = after.get('stock-available')
         before_price = before.get('price', after_price + 1)  # Use after_price + 1 if no before_price
         before_stock_available = before.get('stock-available', False)
+        sale = 1-(after_price / after_rrp)
 
-        if after_price < after_rrp:
+        if sale > minimum_sale:
             if after_price < before_price and after_stock_available:
                 send_ping(db, after)
-            if after_stock_available and not before_stock_available:
+            elif after_stock_available and not before_stock_available:
                 send_ping(db, after)
 
     except Exception as error:
@@ -94,7 +95,7 @@ async def listen_for_database_changes(collection):
 # Handle Bot Boot.
 @bot.event
 async def on_ready():
-    print(f"{bot.user} is now online.")
+    logger.info(f"{bot.user} is now online.")
     logger.info("Bot is running")
 
     collection_to_watch = db.config_products_col.distinct('data-table')

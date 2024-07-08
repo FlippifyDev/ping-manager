@@ -13,7 +13,7 @@ def lego_retirement_ping_data(db, ping_data, document):
         links = f"**| {links}"
         end = " |**"
 
-        # Add ebay mean price
+        # Add ebay mean price and link
         ebay_filter = {"website": "eBay", "sku": sku}
         ebay_product = db.fetch_product(ebay_filter)
         if ebay_product is not None:
@@ -22,6 +22,10 @@ def lego_retirement_ping_data(db, ping_data, document):
                 "value": f"£{ebay_product.get('mean-price')}"
             }
             ping_data["fields"].insert(-1, ebay_field)
+
+            ebay_link = ebay_product.get("link")
+            if ebay_link:
+                links += f" | [eBay]({ebay_link.replace(" ", "+")})"
 
         if (document.get("website") == "Amazon"):
             keepa_link = f"https://keepa.com/#product/2-{extract_amazon_asin(document.get('link'))}" 
