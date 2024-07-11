@@ -2,7 +2,7 @@
     "Lego-Retirement-Deals": {
         "title": "**{sku} {product-name}**",
         "description": "> Sale of {round((100 - (100 * price / rrp)), 2)}%",
-        "color": 16766210,
+        "color": 38143,
         "fields": [
             {
                 "name": "**Current Price**",
@@ -11,6 +11,10 @@
             {
                 "name": "**Retail Price**",
                 "value": "£{rrp}"
+            },
+            {
+                "name": "**Retirement Date**",
+                "value": "{retirement-date}"
             },
             {
                 "name": "**Links**",

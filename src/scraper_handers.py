@@ -1,8 +1,11 @@
+import pyshorteners
 import logging
 import re
 
 
 logger = logging.getLogger("PING-MANAGER")
+
+type_tiny = pyshorteners.Shortener()
 
 
 def lego_retirement_ping_data(db, ping_data, document):
@@ -21,22 +24,30 @@ def lego_retirement_ping_data(db, ping_data, document):
                 "name": "**eBay Mean Price**",
                 "value": f"£{ebay_product.get('mean-price')}"
             }
-            ping_data["fields"].insert(-1, ebay_field)
+            ping_data["fields"].insert(-2, ebay_field)
 
             ebay_link = ebay_product.get("link")
             if ebay_link:
+                ebay_link += "&rt=nc&LH_Sold=1&LH_Complete=1"
                 links += f" | [eBay]({ebay_link.replace(" ", "+")})"
-
+        
+        # Add the Keepa link
         if (document.get("website") == "Amazon"):
-            keepa_link = f"https://keepa.com/#product/2-{extract_amazon_asin(document.get('link'))}" 
-            links += f" | [Keepa]({keepa_link})"
-        else:
-            filter = {"sku": sku, "website": "Amazon"}
-            amazon_link = db.fetch_product(filter).get("link")
-            if amazon_link is not None:
-                links += f" | [Amazon]({amazon_link})"
+            amazon_link = document.get("link")
+            if amazon_link:
                 keepa_link = f"https://keepa.com/#product/2-{extract_amazon_asin(amazon_link)}" 
                 links += f" | [Keepa]({keepa_link})"
+
+        else:
+            filter = {"sku": sku, "website": "Amazon"}
+            amazon_prod = db.fetch_product(filter)
+            if amazon_prod:
+                amazon_link = amazon_prod.get("link")
+                if amazon_link is not None:
+                    keepa_link = f"https://keepa.com/#product/2-{extract_amazon_asin(amazon_link)}" 
+                    amazon_link = type_tiny.tinyurl.short(amazon_prod.get("link"))
+                    links += f" | [Amazon]({amazon_link})"
+                    links += f" | [Keepa]({keepa_link})"
 
         # Add lego link
         lego_link = "https://www.lego.com/en-gb/search?q=" + sku

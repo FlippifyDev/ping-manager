@@ -6,7 +6,9 @@ from .exceptions import InvalidScraperType
 from discord_webhook import DiscordWebhook
 from dotenv import load_dotenv
 
+import pyshorteners
 import logging
+import time
 import json
 import os
 import re
@@ -14,6 +16,8 @@ import re
 load_dotenv()
 
 logger = logging.getLogger("PING-MANAGER")
+
+type_tiny = pyshorteners.Shortener()
 
 
 """
@@ -61,6 +65,7 @@ async def postDeal(deal, channelID, fields):
 
 
 
+
 def send_ping(db, document):
     try:
         embed = create_embed(db, document)
@@ -74,6 +79,8 @@ def send_ping(db, document):
         webhook = DiscordWebhook(url=webhook_url, embeds=embed, rate_limit_retry=True)
         webhook.execute()
         logger.info(f"Ping sent for {document.get('product-name')} on {document.get('website')}")
+
+        time.sleep(0.5)
 
     except Exception as error:
         logger.critical(msg=f"Couldn't send ping for ({document.get('product-name')}) on ({document.get('link')}) | {error}")
@@ -136,8 +143,14 @@ def format_value(value, document):
 
 
 def create_embed(db, document):
+    temp_link = None
     try:
         scraper_config = fetch_scraper_config(document.get("type"))
+
+        # Change the amazon link to a tiny url
+        if (document.get("website") == "Amazon"):
+            temp_link = document.get("link", "")
+            document["link"] = type_tiny.tinyurl.short(temp_link)
 
         # Create the dictionary with the extracted and formatted data
         ping_data = {key: format_value(value, document) for key, value in scraper_config.items()}
@@ -149,6 +162,10 @@ def create_embed(db, document):
             ping_data["author"]["name"] = format_value(ping_data["author"]["name"], document)
         if "thumbnail" in ping_data:
             ping_data["thumbnail"]["url"] = format_value(ping_data["thumbnail"]["url"], document)
+        
+        # Change the link back from the tiny url
+        if temp_link is not None:
+            document["link"] = temp_link
 
         return [process_scrapers(db, ping_data, document)]
 

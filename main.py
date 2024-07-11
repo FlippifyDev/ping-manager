@@ -41,7 +41,10 @@ def process_ping(before, after, minimum_sale=0.15):
             return
         after_rrp = after.get('rrp')
         after_stock_available = after.get('stock-available')
-        before_price = before.get('price', after_price + 1)  # Use after_price + 1 if no before_price
+        before_price = before.get('price') 
+        # Use after_price + 1 if no before_price
+        if before_price is None:
+            before_price = after_price + 1
         before_stock_available = before.get('stock-available', False)
         sale = 1-(after_price / after_rrp)
 
