@@ -29,7 +29,7 @@ def lego_retirement_ping_data(db, ping_data, document):
             ebay_link = ebay_product.get("link")
             if ebay_link:
                 ebay_link += "&rt=nc&LH_Sold=1&LH_Complete=1"
-                links += f" | [eBay]({ebay_link.replace(' ', '+')})"
+                links += f" | [eBay]({ebay_link.replace("\u00A0", "+").replace(' ', '+')})"
         
         # Add the Keepa link
         if (document.get("website") == "Amazon"):
