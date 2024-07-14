@@ -1,7 +1,7 @@
 # Local Imports
 from src.logger_setup import setup_logger
 from src.database import Database
-from src.ping import send_ping
+from src.ping import send_ping, send_test_ping
 
 # External Imports
 from dotenv import load_dotenv
@@ -59,6 +59,7 @@ def process_ping(before, after, minimum_sale=0.15):
 
 
 
+
 def extract_changes(before, after):
     """Get the difference between before and after documents."""
     diff = {}
@@ -71,7 +72,11 @@ def extract_changes(before, after):
 
 # Listen for database changes
 async def listen_for_database_changes(collection):
-    pipeline = [{'$match': {'operationType': "update"}}]
+    col_name = collection.name
+    if "scraper" in col_name:
+        pipeline = [{'$match': {'operationType': "update"}}]
+    else:
+        pipeline = [{'$match': {'operationType': "insert"}}]
 
     try:
         with collection.watch(pipeline, full_document='updateLookup', full_document_before_change='whenAvailable') as stream:
@@ -88,7 +93,10 @@ async def listen_for_database_changes(collection):
                     after = change['fullDocument']
                     before = change.get('fullDocumentBeforeChange', {})
 
-                process_ping(before, after)
+                if "scraper" in col_name:
+                    process_ping(before, after)
+                elif col_name == "subscription.servers":
+                    send_test_ping(after)
 
     except Exception as error:
         logger.error(error)
@@ -101,10 +109,11 @@ async def on_ready():
     logger.info(f"{bot.user} is now online.")
     logger.info("Bot is running")
 
-    collection_to_watch = db.config_products_col.distinct('data-table')
+    collections_to_watch = ["subscription.servers"]
+    collections_to_watch += db.config_products_col.distinct('data-table')
     threads = []
 
-    for collection_name in collection_to_watch:
+    for collection_name in collections_to_watch:
         thread = threading.Thread(target=lambda: asyncio.run(listen_for_database_changes(db[collection_name])), daemon=True)
         threads.append(thread.start())
 

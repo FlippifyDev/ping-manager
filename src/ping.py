@@ -65,6 +65,21 @@ async def postDeal(deal, channelID, fields):
 
 
 
+def send_test_ping(after):
+    embeds = [
+        {
+            "title": "Your webhook works!!",
+            "description": "If this is not the channel you want the pings to go to then simply re-enter another webhook. \nThe new webhook will replace the previous one.",
+            "color": 65280
+        }
+    ]
+    webhook_url = after.get("webhook")
+    if webhook_url is None:
+        return
+    
+    webhook = DiscordWebhook(url=webhook_url, embeds=embeds, rate_limit_retry=True)
+    webhook.execute()
+
 
 def send_ping(db, document):
     try:
@@ -76,8 +91,17 @@ def send_ping(db, document):
             logger.critical(f"Scraper Type: {document.get('type')} has no webhook")
             return
 
-        webhook = DiscordWebhook(url=webhook_url, embeds=embed, rate_limit_retry=True)
-        webhook.execute()
+
+        def send_to_webhook(webhook):
+            webhook = DiscordWebhook(url=webhook, embeds=embed, rate_limit_retry=True)
+            webhook.execute()
+
+        send_to_webhook(webhook_url)
+        user_webhooks = db.get_user_webhooks(document.get("type"))
+
+        for user_webhook in user_webhooks:
+            send_to_webhook(user_webhook)
+
         logger.info(f"Ping sent for {document.get('product-name')} on {document.get('website')}")
 
         time.sleep(0.5)
