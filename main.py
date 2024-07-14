@@ -76,7 +76,7 @@ async def listen_for_database_changes(collection):
     if "scraper" in col_name:
         pipeline = [{'$match': {'operationType': "update"}}]
     else:
-        pipeline = [{'$match': {'operationType': "insert"}}]
+        pipeline = [{"$match": {"operationType": {"$in": ["insert", "update"]}}}]
 
     try:
         with collection.watch(pipeline, full_document='updateLookup', full_document_before_change='whenAvailable') as stream:
