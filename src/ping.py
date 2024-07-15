@@ -77,7 +77,8 @@ def send_test_ping(after):
     if webhook_url is None:
         return
     
-    webhook = DiscordWebhook(url=webhook_url, embeds=embeds, rate_limit_retry=True)
+    avatar_url = "https://i.imgur.com/oR6gpLI.png"
+    webhook = DiscordWebhook(url=webhook_url, embeds=embeds, avatar_url=avatar_url, rate_limit_retry=True)
     webhook.execute()
 
 
@@ -91,9 +92,9 @@ def send_ping(db, document):
             logger.critical(f"Scraper Type: {document.get('type')} has no webhook")
             return
 
-
+        avatar_url = "https://i.imgur.com/oR6gpLI.png"
         def send_to_webhook(webhook):
-            webhook = DiscordWebhook(url=webhook, embeds=embed, rate_limit_retry=True)
+            webhook = DiscordWebhook(url=webhook, embeds=embed, avatar_url=avatar_url, rate_limit_retry=True)
             webhook.execute()
 
         send_to_webhook(webhook_url)

@@ -43,16 +43,6 @@ class Database():
 
     def fetch_product(self, filter):
         return self.lego_retirement_col.find_one(filter)
-
-
-
-    def get_channel_id(self, scraper_type):
-        # Fetching the discord channel id associated with each type of deal to know where to post deals.
-        scraper = self.config_products_col.find_one({'scraper-type': scraper_type})
-        if scraper:
-            logger.info(f"Fetched Channel ID for {scraper_type}: {scraper['channel-id']}")
-            return scraper['channel-id']
-        return None
     
 
     def get_user_webhooks(self, deal_type):
