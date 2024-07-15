@@ -118,5 +118,5 @@ async def on_ready():
         threads.append(thread.start())
 
 
-delete_previous_logs_on_start()
+delete_previous_logs_on_start("PING-MANAGER")
 bot.run(bot_token)
