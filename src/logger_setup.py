@@ -2,6 +2,12 @@ import logging
 import sys
 
 
+def delete_previous_logs_on_start(filename):
+    with open(f"logs/{filename}.log", "r+") as file:
+        file.seek(0)
+        file.truncate()
+        
+
 def setup_logger(name, filename):
     # Logger set up
     FORMAT = f"[{name}] | [%(asctime)s] | %(filename)s/%(funcName)s:%(lineno)d | [%(levelname)s] | %(message)s"

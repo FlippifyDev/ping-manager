@@ -1,5 +1,5 @@
 # Local Imports
-from src.logger_setup import setup_logger
+from src.logger_setup import setup_logger, delete_previous_logs_on_start
 from src.database import Database
 from src.ping import send_ping, send_test_ping
 
@@ -118,5 +118,5 @@ async def on_ready():
         threads.append(thread.start())
 
 
-
+delete_previous_logs_on_start()
 bot.run(bot_token)
