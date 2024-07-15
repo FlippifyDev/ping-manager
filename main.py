@@ -109,12 +109,13 @@ async def on_ready():
     logger.info(f"{bot.user} is now online.")
     logger.info("Bot is running")
 
-    collections_to_watch = ["subscription.servers"]
-    collections_to_watch += db.config_products_col.distinct('data-table')
+    collections_to_watch = [db["subscription.servers"]]
+    collections_to_watch += [db[col] for col in db.config_products_col.distinct('data-table') if db[col] is not None]
+    
     threads = []
 
-    for collection_name in collections_to_watch:
-        thread = threading.Thread(target=lambda: asyncio.run(listen_for_database_changes(db[collection_name])), daemon=True)
+    for collection in collections_to_watch:
+        thread = threading.Thread(target=lambda: asyncio.run(listen_for_database_changes(collection)), daemon=True)
         threads.append(thread.start())
 
 
