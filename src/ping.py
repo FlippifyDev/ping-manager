@@ -1,5 +1,5 @@
 # Local Imports
-from src.scraper_handers import lego_retirement_ping_data
+from src.scraper_handers import ping_data_retiring_sets
 from .exceptions import InvalidScraperType
 
 # External Imports
@@ -65,6 +65,9 @@ async def postDeal(deal, channelID, fields):
 
 
 
+avatar_url = "https://i.imgur.com/oR6gpLI.png"
+
+
 def send_test_ping(after):
     embeds = [
         {
@@ -77,7 +80,7 @@ def send_test_ping(after):
     if webhook_url is None:
         return
     
-    avatar_url = "https://i.imgur.com/oR6gpLI.png"
+    
     webhook = DiscordWebhook(url=webhook_url, embeds=embeds, avatar_url=avatar_url, rate_limit_retry=True)
     webhook.execute()
 
@@ -87,12 +90,12 @@ def send_ping(db, document):
         embed = create_embed(db, document)
 
         # Load the webhook from the config file
-        webhook_url = os.getenv(document.get("type"))
+        env_webhook_name = document.get("type") + "-" + document.get("region").upper()
+        webhook_url = os.getenv(env_webhook_name)
         if webhook_url == None:
             logger.critical(f"Scraper Type: {document.get('type')} has no webhook")
             return
 
-        avatar_url = "https://i.imgur.com/oR6gpLI.png"
         def send_to_webhook(webhook):
             webhook = DiscordWebhook(url=webhook, embeds=embed, avatar_url=avatar_url, rate_limit_retry=True)
             webhook.execute()
@@ -202,8 +205,8 @@ def create_embed(db, document):
 def process_scrapers(db, ping_data, document):
     try:
         # Lego-Retirement-Deals
-        if (document.get("type") == "Lego-Retirement-Deals"):
-            ping_data = lego_retirement_ping_data(db, ping_data, document) 
+        if (document.get("type") == "Retiring-Sets-Deals"):
+            ping_data = ping_data_retiring_sets(db, ping_data, document) 
 
         return ping_data
 

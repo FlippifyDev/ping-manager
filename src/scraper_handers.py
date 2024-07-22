@@ -8,7 +8,7 @@ logger = logging.getLogger("PING-MANAGER")
 type_tiny = pyshorteners.Shortener()
 
 
-def lego_retirement_ping_data(db, ping_data, document):
+def ping_data_retiring_sets(db, ping_data, document):
     try:
         sku = document.get("sku")
         # Links field is alway at the botton which is why -1 is used
@@ -21,14 +21,13 @@ def lego_retirement_ping_data(db, ping_data, document):
         ebay_product = db.fetch_product(ebay_filter)
         if ebay_product is not None:
             ebay_field = {
-                "name": "**eBay Mean Price**",
-                "value": f"£{ebay_product.get('mean-price')}"
+                "name": "**eBay Prices**",
+                "value": f"Mean £{ebay_product.get('mean-price')} | Max £{ebay_product.get('max-price')}"
             }
             ping_data["fields"].insert(-2, ebay_field)
 
             ebay_link = ebay_product.get("link")
             if ebay_link:
-                ebay_link += "&rt=nc&LH_Sold=1&LH_Complete=1"
                 # Perform the replacements outside the f-string
                 ebay_link_replaced = ebay_link.replace("\u00A0", "+").replace(' ', '+')
                 # Construct the f-string

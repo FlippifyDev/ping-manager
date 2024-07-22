@@ -1,5 +1,5 @@
 {
-    "Lego-Retirement-Deals": {
+    "Retiring-Sets-Deals": {
         "title": "**{sku} {product-name}**",
         "description": "> Sale of {round((100 - (100 * price / rrp)), 2)}%",
         "color": 38143,
