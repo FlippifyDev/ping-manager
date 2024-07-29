@@ -18,7 +18,7 @@ def ping_data_retiring_sets(db, ping_data, document):
 
         # Add ebay mean price and link
         ebay_filter = {"website": "eBay", "sku": sku}
-        ebay_product = db.fetch_product(ebay_filter)
+        ebay_product = db.fetch_retiring_sets_product(ebay_filter)
         if ebay_product is not None:
             ebay_field = {
                 "name": "**eBay Prices**",

@@ -68,7 +68,7 @@ async def postDeal(deal, channelID, fields):
 avatar_url = "https://i.imgur.com/oR6gpLI.png"
 
 
-def send_test_ping(after):
+def send_test_ping(change):
     embeds = [
         {
             "title": "Your webhook works!!",
@@ -76,12 +76,11 @@ def send_test_ping(after):
             "color": 65280
         }
     ]
-    webhook_url = after.get("webhook")
-    if webhook_url is None:
+    webhook_url = list(change.values())
+    if webhook_url == []:
         return
     
-    
-    webhook = DiscordWebhook(url=webhook_url, embeds=embeds, avatar_url=avatar_url, rate_limit_retry=True)
+    webhook = DiscordWebhook(url=webhook_url[0], embeds=embeds, avatar_url=avatar_url, rate_limit_retry=True)
     webhook.execute()
 
 

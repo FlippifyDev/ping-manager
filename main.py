@@ -96,7 +96,7 @@ async def listen_for_database_changes(collection):
                 if "scraper" in col_name:
                     process_ping(before, after)
                 elif col_name == "subscription.servers":
-                    send_test_ping(after)
+                    send_test_ping(change.get("updateDescription", {}).get("updatedFields", ""))
 
     except Exception as error:
         logger.error(error)
@@ -111,7 +111,6 @@ async def on_ready():
 
     collections_to_watch = [db["subscription.servers"]]
     collections_to_watch += [db[col] for col in db.config_products_col.distinct('data-table') if db[col] is not None]
-    
     threads = []
 
     for collection in collections_to_watch:

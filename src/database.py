@@ -18,9 +18,10 @@ class Database():
         password =       os.getenv("DB_PASSWORD")
 
         # Config - Collections Names
-        retiring_sets_col =      os.getenv("RETIRING_SETS_COL")
-        config_products_col =      os.getenv("CONFIG_PRODUCTS_COL")
-        subscription_servers_col = os.getenv("SUBSCRIPTION_SERVERS_COL")
+        config_products_col =      os.getenv("COL_CONFIG_PRODUCTS")
+        subscription_servers_col = os.getenv("COL_SUBSCRIPTION_SERVERS")
+        retiring_sets_col =        os.getenv("COL_RETIRING_SETS")
+        electronics_col =          os.getenv("COL_ELECTRONICS")
 
         # Connection
         conn_string = f"mongodb+srv://{username}:{password}@{db_deployment}.mongodb.net/"
@@ -28,20 +29,22 @@ class Database():
         self.db = self.client[db_name]
 
         # Collections
-        self.retiring_sets_col = self.db[retiring_sets_col]
-        self.config_products_col = self.db[config_products_col]
-        self.subscription_servers_col = self.db[subscription_servers_col]
+        self.config_products_col =       self.db[config_products_col]
+        self.subscription_servers_col =  self.db[subscription_servers_col]
+        self.retiring_sets_col =         self.db[retiring_sets_col]
+        self.electronics_col =           self.db[electronics_col]
 
         # Collections Dictionary
         self.collections = {
-            retiring_sets_col: self.retiring_sets_col,
             config_products_col: self.config_products_col,
-            subscription_servers_col: self.subscription_servers_col
+            subscription_servers_col: self.subscription_servers_col,
+            retiring_sets_col: self.retiring_sets_col,
+            electronics_col: self.electronics_col,
         }
 
 
 
-    def fetch_product(self, filter):
+    def fetch_retiring_sets_product(self, filter):
         return self.retiring_sets_col.find_one(filter)
     
 
