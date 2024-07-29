@@ -6,7 +6,6 @@ from .exceptions import InvalidScraperType
 from discord_webhook import DiscordWebhook
 from dotenv import load_dotenv
 
-import pyshorteners
 import logging
 import time
 import json
@@ -16,8 +15,6 @@ import re
 load_dotenv()
 
 logger = logging.getLogger("PING-MANAGER")
-
-type_tiny = pyshorteners.Shortener()
 
 
 """
@@ -173,14 +170,8 @@ def format_value(value, document):
 
 
 def create_embed(db, document):
-    temp_link = None
     try:
         scraper_config = fetch_scraper_config(document.get("type"))
-
-        # Change the amazon link to a tiny url
-        if (document.get("website") == "Amazon"):
-            temp_link = document.get("link", "")
-            document["link"] = type_tiny.tinyurl.short(temp_link)
 
         # Create the dictionary with the extracted and formatted data
         ping_data = {key: format_value(value, document) for key, value in scraper_config.items()}
@@ -193,10 +184,6 @@ def create_embed(db, document):
         if "thumbnail" in ping_data:
             ping_data["thumbnail"]["url"] = format_value(ping_data["thumbnail"]["url"], document)
         
-        # Change the link back from the tiny url
-        if temp_link is not None:
-            document["link"] = temp_link
-
         return [process_scrapers(db, ping_data, document)]
 
     except Exception as error:
