@@ -42,7 +42,7 @@ def ping_data_retiring_sets(db, ping_data, document):
 
         else:
             filter = {"sku": sku, "website": "Amazon"}
-            amazon_prod = db.fetch_product(filter)
+            amazon_prod = db.fetch_retiring_sets_product(filter)
             if amazon_prod:
                 amazon_link = amazon_prod.get("link")
                 if amazon_link is not None:

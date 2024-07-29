@@ -66,23 +66,26 @@ async def postDeal(deal, channelID, fields):
 
 
 avatar_url = "https://i.imgur.com/oR6gpLI.png"
-
+test_embeds = [
+    {
+        "title": "Your webhook works!!",
+        "description": "If this is not the channel you want the pings to go to then simply re-enter another webhook. \nThe new webhook will replace the previous one.",
+        "color": 65280
+    }
+]
 
 def send_test_ping(change):
-    embeds = [
-        {
-            "title": "Your webhook works!!",
-            "description": "If this is not the channel you want the pings to go to then simply re-enter another webhook. \nThe new webhook will replace the previous one.",
-            "color": 65280
-        }
-    ]
-    webhook_url = list(change.values())
-    if webhook_url == []:
-        return
-    
-    webhook = DiscordWebhook(url=webhook_url[0], embeds=embeds, avatar_url=avatar_url, rate_limit_retry=True)
-    webhook.execute()
 
+    try:
+        webhook_url = list(change.values())
+        if webhook_url == []:
+            return
+        
+        webhook = DiscordWebhook(url=webhook_url[0], embeds=test_embeds, avatar_url=avatar_url, rate_limit_retry=True)
+        webhook.execute()
+
+    except Exception as error:
+        logger.error(error)
 
 def send_ping(db, document):
     try:
