@@ -1,6 +1,6 @@
 {
     "Retiring-Sets-Deals": {
-        "title": "**{sku} {product-name}**",
+        "title": "**{product-name}**",
         "description": "> Sale of {round((100 - (100 * price / rrp)), 2)}%",
         "color": 38143,
         "fields": [
@@ -30,16 +30,22 @@
     },
     "Electronics": {
         "title": "**{product-name}**",
-        "description": "> Sale of {round((100 - (100 * price / rrp)), 2)}%",
         "color": 38143,
         "fields": [
             {
-                "name": "**Current Price**",
-                "value": "£{price}"
+                "name": "**Buy Price**",
+                "value": "£{price}",
+                "inline": true
             },
             {
-                "name": "**Retail Price**",
-                "value": "£{rrp}"
+                "name": "** **",
+                "value": "** **",
+                "inline": true
+            },
+            {
+                "name": "**RRP**",
+                "value": "£{rrp}",
+                "inline": true
             },
             {
                 "name": "**Links**",

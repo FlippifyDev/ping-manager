@@ -1,4 +1,5 @@
 # Local Imports
+from src.scraper_handers import handle_should_send_ping
 from src.logger_setup import setup_logger, delete_previous_logs_on_start
 from src.database import Database
 from src.ping import send_ping, send_test_ping
@@ -33,33 +34,6 @@ with open('config.json') as file:
 
 
 
-def process_ping(before, after, minimum_sale=0.15):
-    try:
-        # Check conditions for sending a ping
-        after_price = after.get('price')
-        if after_price is None:
-            return
-        after_rrp = after.get('rrp')
-        after_stock_available = after.get('stock-available')
-        before_price = before.get('price') 
-        # Use after_price + 1 if no before_price
-        if before_price is None:
-            before_price = after_price + 1
-        before_stock_available = before.get('stock-available', False)
-        sale = 1-(after_price / after_rrp)
-
-        if sale > minimum_sale:
-            if after_price < before_price and after_stock_available:
-                send_ping(db, after)
-            elif after_stock_available and not before_stock_available:
-                send_ping(db, after)
-
-    except Exception as error:
-        logger.error(error)
-
-
-
-
 def extract_changes(before, after):
     """Get the difference between before and after documents."""
     diff = {}
@@ -74,7 +48,7 @@ def extract_changes(before, after):
 async def listen_for_database_changes(collection):
     col_name = collection.name
     if "scraper" in col_name:
-        pipeline = [{'$match': {'operationType': "update"}}]
+        pipeline = [{'$match': {'operationType': {"$in": ["update"]}}}]
     else:
         pipeline = [{"$match": {"operationType": {"$in": ["insert", "update"]}}}]
 
@@ -94,7 +68,8 @@ async def listen_for_database_changes(collection):
                     before = change.get('fullDocumentBeforeChange', {})
 
                 if "scraper" in col_name:
-                    process_ping(before, after)
+                    if handle_should_send_ping(db, before, after) is True:
+                        send_ping(db, after)
                 elif col_name == "subscription.servers":
                     send_test_ping(change.get("updateDescription", {}).get("updatedFields", ""))
 

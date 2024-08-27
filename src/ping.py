@@ -1,5 +1,5 @@
 # Local Imports
-from src.scraper_handers import ping_data_retiring_sets
+from .scraper_handers import ping_data_electronics, ping_data_retiring_sets
 from .exceptions import InvalidScraperType
 
 # External Imports
@@ -17,49 +17,6 @@ load_dotenv()
 logger = logging.getLogger("PING-MANAGER")
 
 
-"""
-
-# Formatting field names for embeds.
-def format_field_name(field_name):
-    return field_name.replace('_', ' ').capitalize()
-
-
-# Posting deals in discord
-async def postDeal(deal, channelID, fields):
-    print("Preparing to post deal.")
-    channel = bot.get_channel(channelID)
-
-    if channel:
-        try:
-            embed = discord.Embed(
-                title=deal.get('product-name', 'Deal Found!'),
-                url=deal.get('link', ''),
-                color=discord.Color.blue(),
-                timestamp=datetime.now()
-                )
-
-            for field in fields:
-                if field in deal:
-                    print("Field:", field)
-                    if field == 'image':
-                        embed.set_thumbnail(url=deal['image'])
-                        continue
-                    if field == 'timestamp' or field == 'type':
-                        continue
-                    else:
-                        embed.add_field(name=format_field_name(field), value=deal[field], inline=False)
-            
-            await channel.send(embed=embed)
-            print("Embed sent successfully.")
-            logger.info("")
-        except discord.DiscordException as e:
-            print(f"Failed to send embed: {e}")
-            logger.error("Error sending embed %s" % e)
-    else:
-        print(f"Channel with ID {channelID} not found.")
-        logger.error("Channel %s not found" % channelID) 
-"""
-
 
 
 avatar_url = "https://i.imgur.com/oR6gpLI.png"
@@ -70,6 +27,8 @@ test_embeds = [
         "color": 65280
     }
 ]
+
+
 
 def send_test_ping(change):
 
@@ -84,9 +43,14 @@ def send_test_ping(change):
     except Exception as error:
         logger.error(error)
 
+
+
 def send_ping(db, document):
     try:
         embed = create_embed(db, document)
+        if embed == [None]:
+            logger.warning(f"Embed not created for {document.get('product-name')} on {document.get('website')}")
+            return
 
         # Load the webhook from the config file
         env_webhook_name = document.get("type") + "-" + document.get("region").upper()
@@ -115,7 +79,7 @@ def send_ping(db, document):
 
 
 def fetch_scraper_config(scraper_type):
-    with open("config.json") as file:
+    with open("config.json", "r", encoding="utf-8") as file:
         config = json.load(file)
         scraper_config = config.get(scraper_type)
         if scraper_config is None:
@@ -162,7 +126,8 @@ def format_value(value, document):
             formatted_value = re.sub(r'\{([^}]*)\}', '', value)
 
         # Encode to bytes, decode to ensure correct encoding handling
-        formatted_value = formatted_value.encode('latin1', errors='ignore').decode('utf-8', errors='ignore')
+        if document.get("type") != "Electronics":
+            formatted_value = formatted_value.encode('latin1', errors='ignore').decode('utf-8', errors='ignore')
 
         return formatted_value
     return value
@@ -173,8 +138,15 @@ def create_embed(db, document):
     try:
         scraper_config = fetch_scraper_config(document.get("type"))
 
+        # Add the website name and 
+        temp_product_name = document["product-name"]
+        if document.get("provider-product") is True:
+            document["product-name"] = document["website"] + " " + document["product-name"] + " " + document["device"]
+
         # Create the dictionary with the extracted and formatted data
         ping_data = {key: format_value(value, document) for key, value in scraper_config.items()}
+        document["product-name"] = temp_product_name
+
 
         # Handle nested fields and format them as well
         for field in ping_data.get("fields", []):
@@ -196,6 +168,9 @@ def process_scrapers(db, ping_data, document):
         # Lego-Retirement-Deals
         if (document.get("type") == "Retiring-Sets-Deals"):
             ping_data = ping_data_retiring_sets(db, ping_data, document) 
+        
+        elif (document.get("type") == "Electronics"):
+            ping_data = ping_data_electronics(db, ping_data, document) 
 
         return ping_data
 
