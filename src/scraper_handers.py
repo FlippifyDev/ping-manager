@@ -60,11 +60,7 @@ def should_send_ping_default(before, after, minimum_sale=0):
 def should_send_ping_electronics(db, before, after, minimum_sale, required_roi=0.10):
     try:
         # Get the ebay document related to this product
-        if before.get("provider-product") is True:
-            ebay_product_name = f"{before.get('website')} {before.get('product-name')} {before.get('device')}"
-        else:
-            ebay_product_name = before.get('product-name')
-
+        ebay_product_name = before.get('product-name')
         ebay_filter = {"website": "eBay", "region": before.get("region"), "product-name": ebay_product_name}
         ebay_product = db.fetch_product(ebay_filter, "ebay")
 
@@ -80,12 +76,12 @@ def should_send_ping_electronics(db, before, after, minimum_sale, required_roi=0
         
         revenue = ebay_mean_price*0.872
         estimated_roi = (revenue-buy_price) / buy_price
-
         if estimated_roi >= required_roi:
             return True
 
     except Exception as error:
         logger.error(error)
+        return False
 
 
 
@@ -191,6 +187,8 @@ def add_ebay_fields(db, document, ping_data):
         ebay_product = db.fetch_product(ebay_filter, "ebay")
 
         if ebay_product is None:
+            ping_data["fields"][0]["inline"] = False
+            del ping_data["fields"][1]
             return ping_data, None
         
         buy_price = document.get("price")

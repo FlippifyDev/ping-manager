@@ -138,15 +138,8 @@ def create_embed(db, document):
     try:
         scraper_config = fetch_scraper_config(document.get("type"))
 
-        # Add the website name and 
-        temp_product_name = document["product-name"]
-        if document.get("provider-product") is True:
-            document["product-name"] = document["website"] + " " + document["product-name"] + " " + document["device"]
-
         # Create the dictionary with the extracted and formatted data
         ping_data = {key: format_value(value, document) for key, value in scraper_config.items()}
-        document["product-name"] = temp_product_name
-
 
         # Handle nested fields and format them as well
         for field in ping_data.get("fields", []):
@@ -160,7 +153,6 @@ def create_embed(db, document):
 
     except Exception as error:
         logger.critical(msg=f"Couldn't create embed for ({document.get('product-name')}) on ({document.get('website')}) | {error}")
-
 
 
 def process_scrapers(db, ping_data, document):
