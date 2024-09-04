@@ -57,7 +57,7 @@ def should_send_ping_default(before, after, minimum_sale=0):
 
 
 
-def should_send_ping_electronics(db, before, after, minimum_sale, required_roi=0.10):
+def should_send_ping_electronics(db, before, after, minimum_sale, required_roi=0.10, minimum_profit=10):
     try:
         # Get the ebay document related to this product
         ebay_product_name = before.get('product-name')
@@ -75,9 +75,14 @@ def should_send_ping_electronics(db, before, after, minimum_sale, required_roi=0
             return False
         
         revenue = ebay_mean_price*0.872
-        estimated_roi = (revenue-buy_price) / buy_price
-        if estimated_roi >= required_roi:
-            return True
+        profit_128_fees = revenue-buy_price # 12.8% fees
+        if profit_128_fees < minimum_profit:
+            return False
+        return True
+        
+        #estimated_roi = (revenue-buy_price) / buy_price
+        #if estimated_roi >= required_roi:
+            #return True
 
     except Exception as error:
         logger.error(error)
