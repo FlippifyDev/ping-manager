@@ -48,7 +48,10 @@ def extract_changes(before, after):
 async def listen_for_database_changes(collection):
     col_name = collection.name
     if "scraper" in col_name:
-        pipeline = [{'$match': {'operationType': {"$in": ["update", "replace"]}}}]
+        if col_name == "scraper.deal-watch":
+            pipeline = [{'$match': {'operationType': {"$in": ["insert"]}}}]
+        else:
+            pipeline = [{'$match': {'operationType': {"$in": ["update"]}}}]
     else:
         pipeline = [{"$match": {"operationType": {"$in": ["insert", "update"]}}}]
 
@@ -70,6 +73,7 @@ async def listen_for_database_changes(collection):
                 if "scraper" in col_name:
                     if handle_should_send_ping(db, before, after) is True:
                         send_ping(db, after)
+                        
                 elif col_name == "subscription.servers":
                     send_test_ping(change.get("updateDescription", {}).get("updatedFields", ""))
 
@@ -95,3 +99,4 @@ async def on_ready():
 
 delete_previous_logs_on_start("ping-manager")
 bot.run(bot_token)
+

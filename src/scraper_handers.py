@@ -15,10 +15,13 @@ def handle_should_send_ping(db, before, after):
         if should_send_ping_default(before, after) is False:
             return False
         
-        scraper_type = before.get("type")
+        scraper_type = after.get("type")
         
         if scraper_type == "Electronics":
             return should_send_ping_electronics(db, before, after, minimum_sale=0.40)
+        elif scraper_type == "Deal-Watch-UK":
+            # When a document is added to the deal-watch collection then it must be sent
+            return True        
         elif scraper_type == "Retiring-Sets-Deals":
             return should_send_ping_retiring_sets(before, after, minimum_sale=0.20)
         else:
@@ -31,6 +34,9 @@ def handle_should_send_ping(db, before, after):
 
 def should_send_ping_default(before, after, minimum_sale=0):
     try:
+        # Let the individual ping handlers handle when there is no prvious price
+        if before is None:
+            return True
         # Check conditions for sending a ping
         after_price = after.get('price')
         if after_price is None:
@@ -57,13 +63,6 @@ def should_send_ping_default(before, after, minimum_sale=0):
     except Exception as error:
         logger.error(error)
 
-
-
-def should_send_ping_retiring_sets(before, after, minimum_sale):
-    if before.get("sold-by-amazon") is False:
-        return False
-    
-    return should_send_ping_default(before, after, minimum_sale)
 
 
 def should_send_ping_electronics(db, before, after, minimum_sale, required_roi=0.10, minimum_profit=10):
@@ -99,6 +98,14 @@ def should_send_ping_electronics(db, before, after, minimum_sale, required_roi=0
 
 
 
+def should_send_ping_retiring_sets(before, after, minimum_sale):
+    if before.get("sold_by_amazon") is False:
+        return False
+    
+    return should_send_ping_default(before, after, minimum_sale)
+
+
+
 def ping_data_electronics(db, ping_data, document):
     """
     Args:
@@ -114,7 +121,7 @@ def ping_data_electronics(db, ping_data, document):
 
         ping_data, ebay_product = add_ebay_fields(db, document, ping_data)
 
-        links = add_ebay_amazon_links(db, document, ebay_product, links, document.get('product-name'), col="electronics")
+        links = add_ebay_amazon_links(db, document, ebay_product, links, document.get('product_name'), col="electronics")
         links += end
         ping_data["fields"][-1]["value"] = links
 
@@ -134,16 +141,16 @@ def ping_data_retiring_sets(db, ping_data, document):
         end = " |**"
 
         # Add ebay mean price and link
-        ebay_filter = {"website": "eBay", "region": document.get("region"), "product-name": document.get("product-name")}
+        ebay_filter = {"website": "eBay", "region": document.get("region"), "product_name": document.get("product_name")}
         ebay_product = db.fetch_product(ebay_filter, col="ebay")
         if ebay_product is not None:
             ebay_field = {
                 "name": "**eBay Prices**",
-                "value": f"Mean £{ebay_product.get('mean-price')} | Max £{ebay_product.get('max-price')}"
+                "value": f"Mean £{ebay_product.get('mean_price')} | Max £{ebay_product.get('max_price')}"
             }
             ping_data["fields"].insert(-2, ebay_field)
         
-        links = add_ebay_amazon_links(db, document, ebay_product, links, document.get("product-name"), col="retiring-sets")
+        links = add_ebay_amazon_links(db, document, ebay_product, links, document.get("product_name"), col="retiring_sets")
 
         # Add lego link
         lego_link = "https://www.lego.com/en-gb/search?q=" + sku
@@ -197,7 +204,7 @@ def add_ebay_fields(db, document, ping_data):
     try:
         ebay_product_name = document.get('product-name')
 
-        ebay_filter = {"website": "eBay", "region": document.get("region"), "product-name": ebay_product_name, "type": document.get("type")}
+        ebay_filter = {"website": "eBay", "region": document.get("region"), "product_name": ebay_product_name, "type": document.get("type")}
         ebay_product = db.fetch_product(ebay_filter, "ebay")
 
         if ebay_product is None:
@@ -206,7 +213,7 @@ def add_ebay_fields(db, document, ping_data):
             return ping_data, None
         
         buy_price = document.get("price")
-        sell_price = ebay_product.get("mean-price")
+        sell_price = ebay_product.get("mean_price")
         profit_12_8_percent_fees = round((sell_price*0.872) - buy_price, 2)
         profit_3_percent_fees = round((sell_price*0.97) - buy_price, 2)
 
@@ -242,7 +249,7 @@ def add_ebay_fields(db, document, ping_data):
             -1, 
             {
                 "name": "**eBay Mean Price**",
-                "value": f"£{ebay_product.get('mean-price')}",
+                "value": f"£{ebay_product.get('mean_price')}",
                 "inline": True
             }
         )
@@ -258,7 +265,7 @@ def add_ebay_fields(db, document, ping_data):
             -1, 
             {
                 "name": "**eBay Max Price**",
-                "value": f"£{ebay_product.get('max-price')}",
+                "value": f"£{ebay_product.get('max_price')}",
                 "inline": True
             }
         )

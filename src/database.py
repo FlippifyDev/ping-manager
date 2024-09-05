@@ -21,8 +21,9 @@ class Database():
         config_products_col =      os.getenv("COL_CONFIG_PRODUCTS")
         subscription_servers_col = os.getenv("COL_SUBSCRIPTION_SERVERS")
         ebay_col =                 os.getenv("COL_EBAY")
-        retiring_sets_col =        os.getenv("COL_RETIRING_SETS")
         electronics_col =          os.getenv("COL_ELECTRONICS")
+        deal_watch      =          os.getenv("COL_DEAL_WATCH")
+        retiring_sets_col =        os.getenv("COL_RETIRING_SETS")
 
         # Connection
         conn_string = f"mongodb+srv://{username}:{password}@{db_deployment}.mongodb.net/"
@@ -33,6 +34,7 @@ class Database():
         self.config_products_col =       self.db[config_products_col]
         self.subscription_servers_col =  self.db[subscription_servers_col]
         self.ebay_col =                  self.db[ebay_col]
+        self.deal_watch_col =            self.db[deal_watch]
         self.retiring_sets_col =         self.db[retiring_sets_col]
         self.electronics_col =           self.db[electronics_col]
 
@@ -41,12 +43,14 @@ class Database():
             config_products_col: self.config_products_col,
             subscription_servers_col: self.subscription_servers_col,
             ebay_col: self.ebay_col,
-            retiring_sets_col: self.retiring_sets_col,
             electronics_col: self.electronics_col,
+            deal_watch: self.deal_watch_col,
+            retiring_sets_col: self.retiring_sets_col,
         }
         self.runtime_collections = {
             "ebay": self.ebay_col,
             "electronics": self.electronics_col,
+            "deal-watch": self.deal_watch_col,
             "retiring-sets": self.retiring_sets_col
         }
 

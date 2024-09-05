@@ -31,7 +31,6 @@ test_embeds = [
 
 
 def send_test_ping(change):
-
     try:
         webhook_url = list(change.values())
         if webhook_url == []:
@@ -45,16 +44,27 @@ def send_test_ping(change):
 
 
 
+def load_local_webhook(document):
+    # Load the webhook from the config file
+    env_webhook_name = document.get("type") + "-" + document.get("region").upper()
+    webhook_url = os.getenv(env_webhook_name)
+    if webhook_url is not None:
+        return webhook_url
+    
+    env_webhook_name = document.get("type")
+    webhook_url = os.getenv(env_webhook_name)
+    if webhook_url is not None:
+        return webhook_url
+    
+
 def send_ping(db, document):
     try:
         embed = create_embed(db, document)
         if embed == [None]:
-            logger.warning(f"Embed not created for {document.get('product-name')} on {document.get('website')}")
+            logger.warning(f"Embed not created for {document.get('product_name')} on {document.get('website')}")
             return
 
-        # Load the webhook from the config file
-        env_webhook_name = document.get("type") + "-" + document.get("region").upper()
-        webhook_url = os.getenv(env_webhook_name)
+        webhook_url = load_local_webhook(document)
         if webhook_url == None:
             logger.critical(f"Scraper Type: {document.get('type')} has no webhook")
             return
@@ -69,12 +79,12 @@ def send_ping(db, document):
         for user_webhook in user_webhooks:
             send_to_webhook(user_webhook)
 
-        logger.info(f"Ping sent for {document.get('product-name')} on {document.get('website')}")
+        logger.info(f"Ping sent for {document.get('product_name')} on {document.get('website')}")
 
         time.sleep(0.5)
 
     except Exception as error:
-        logger.critical(msg=f"Couldn't send ping for ({document.get('product-name')}) on ({document.get('link')}) | {error}")
+        logger.critical(msg=f"Couldn't send ping for ({document.get('product_name')}) on ({document.get('link')}) | {error}")
 
 
 
@@ -157,12 +167,11 @@ def create_embed(db, document):
 
 def process_scrapers(db, ping_data, document):
     try:
-        # Lego-Retirement-Deals
-        if (document.get("type") == "Retiring-Sets-Deals"):
-            ping_data = ping_data_retiring_sets(db, ping_data, document) 
-        
-        elif (document.get("type") == "Electronics"):
+
+        if (document.get("type") == "Electronics"):
             ping_data = ping_data_electronics(db, ping_data, document) 
+        elif (document.get("type") == "Retiring-Sets-Deals"):
+            ping_data = ping_data_retiring_sets(db, ping_data, document) 
 
         return ping_data
 

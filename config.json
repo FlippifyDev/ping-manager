@@ -1,6 +1,6 @@
 {
     "Retiring-Sets-Deals": {
-        "title": "**{product-name}**",
+        "title": "**{product_name}**",
         "description": "> Sale of {round((100 - (100 * price / rrp)), 2)}%",
         "color": 38143,
         "fields": [
@@ -14,7 +14,7 @@
             },
             {
                 "name": "**Retirement Date**",
-                "value": "{retirement-date}"
+                "value": "{retirement_date}"
             },
             {
                 "name": "**Links**",
@@ -29,7 +29,7 @@
         }
     },
     "Electronics": {
-        "title": "**{product-name}**",
+        "title": "**{product_name}**",
         "color": 38143,
         "fields": [
             {
@@ -50,6 +50,32 @@
             {
                 "name": "**Links**",
                 "value": "[{website}]({link})"
+            }
+        ],
+        "author": {
+            "name": "Sale on {website}"
+        },
+        "thumbnail": {
+            "url": "{image}"
+        }
+    },
+    "Deal-Watch-UK": {
+        "title": "**{product_name}**",
+        "description": "> Price advantage of {round(ebay_mean_price - price, 2)}",
+        "color": 65290,
+        "fields": [
+            {
+                "name": "**Buy Price**",
+                "value": "£{price}",
+                "inline": true
+            },
+            {
+                "name": "**eBay**",
+                "value": "Mean £{ebay_mean_price} | Median £{ebay_median_price} | Min £{ebay_min_price} | Max £{ebay_max_price}"
+            },
+            {
+                "name": "**Links**",
+                "value": "**| [Get Deal]({link}) | [eBay Sell History]({ebay_link}) | [View Deal]({provider_link}) |**"
             }
         ],
         "author": {
