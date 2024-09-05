@@ -38,13 +38,13 @@
                 "inline": true
             },
             {
-                "name": "** **",
-                "value": "** **",
+                "name": "**RRP**",
+                "value": "£{rrp}",
                 "inline": true
             },
             {
-                "name": "**RRP**",
-                "value": "£{rrp}",
+                "name": "** **",
+                "value": "** **",
                 "inline": true
             },
             {

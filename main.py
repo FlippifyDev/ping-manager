@@ -49,9 +49,9 @@ async def listen_for_database_changes(collection):
     col_name = collection.name
     if "scraper" in col_name:
         if col_name == "scraper.deal-watch":
-            pipeline = [{'$match': {'operationType': {"$in": ["insert"]}}}]
+            pipeline = [{'$match': {'operationType': {"$in": ["insert", "replace"]}}}]
         else:
-            pipeline = [{'$match': {'operationType': {"$in": ["update"]}}}]
+            pipeline = [{'$match': {'operationType': {"$in": ["update", "replace"]}}}]
     else:
         pipeline = [{"$match": {"operationType": {"$in": ["insert", "update"]}}}]
 
