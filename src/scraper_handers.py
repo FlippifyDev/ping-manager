@@ -19,6 +19,8 @@ def handle_should_send_ping(db, before, after):
         
         if scraper_type == "Electronics":
             return should_send_ping_electronics(db, before, after, minimum_sale=0.40)
+        elif scraper_type == "Retiring-Sets-Deals":
+            return should_send_ping_retiring_sets(before, after, minimum_sale=0.20)
         else:
             return should_send_ping_default(before, after, minimum_sale=0.15)
 
@@ -55,6 +57,13 @@ def should_send_ping_default(before, after, minimum_sale=0):
     except Exception as error:
         logger.error(error)
 
+
+
+def should_send_ping_retiring_sets(before, after, minimum_sale):
+    if before.get("sold-by-amazon") is False:
+        return False
+    
+    return should_send_ping_default(before, after, minimum_sale)
 
 
 def should_send_ping_electronics(db, before, after, minimum_sale, required_roi=0.10, minimum_profit=10):

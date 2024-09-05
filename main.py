@@ -48,7 +48,7 @@ def extract_changes(before, after):
 async def listen_for_database_changes(collection):
     col_name = collection.name
     if "scraper" in col_name:
-        pipeline = [{'$match': {'operationType': {"$in": ["update"]}}}]
+        pipeline = [{'$match': {'operationType': {"$in": ["update", "replace"]}}}]
     else:
         pipeline = [{"$match": {"operationType": {"$in": ["insert", "update"]}}}]
 
