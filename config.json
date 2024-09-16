@@ -61,13 +61,16 @@
     },
     "Deal-Watch-UK": {
         "title": "**{product_name}**",
-        "description": "> Price advantage of {round(ebay_mean_price - price, 2)}",
+        "description": "> Price advantage of £{round(ebay_mean_price - price, 2)}",
         "color": 65290,
         "fields": [
             {
                 "name": "**Buy Price**",
-                "value": "£{price}",
-                "inline": true
+                "value": "£{price}"
+            },
+            {
+                "name": "**Sales In The Last 7 Days | Month**",
+                "value": "{sold_last_7_days} | {sold_last_month}"
             },
             {
                 "name": "**eBay**",
