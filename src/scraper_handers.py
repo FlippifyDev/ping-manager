@@ -99,8 +99,9 @@ def should_send_ping_electronics(db, before, after, minimum_sale, required_roi=0
 
 
 def should_send_ping_retiring_sets(before, after, minimum_sale):
-    if before.get("sold_by_amazon") is False:
-        return False
+    if before.get("website") == "Amazon":
+        if before.get("sold_by_amazon") is False:
+            return False
     
     return should_send_ping_default(before, after, minimum_sale)
 
