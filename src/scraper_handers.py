@@ -51,6 +51,9 @@ def should_send_ping_default(before, after, minimum_sale=0):
         # After document
         after_stock_available = after.get('stock_available')
         after_rrp = after.get('rrp')
+        if after_rrp is None:
+            return False
+
         sale = 1-(after_price / after_rrp)
 
         if sale > minimum_sale:
@@ -82,15 +85,16 @@ def should_send_ping_electronics(db, before, after, minimum_sale, required_roi=0
         if profit_no_fees <= 0:
             return False
         
-        revenue = ebay_mean_price*0.872
-        profit_128_fees = revenue-buy_price # 12.8% fees
-        if profit_128_fees < minimum_profit:
+        revenue = ebay_mean_price
+        profit_no_fees = revenue-buy_price
+        if profit_no_fees < minimum_profit:
             return False
-        return True
         
-        #estimated_roi = (revenue-buy_price) / buy_price
-        #if estimated_roi >= required_roi:
-            #return True
+        estimated_roi = (revenue-buy_price) / buy_price
+        if estimated_roi < required_roi:
+            return False
+        
+        return True
 
     except Exception as error:
         logger.error(error)
@@ -210,7 +214,7 @@ def add_ebay_fields(db, document, ping_data):
 
         if ebay_product is None:
             ping_data["fields"][0]["inline"] = False
-            del ping_data["fields"][1]
+            del ping_data["fields"][2]
             return ping_data, None
         
         buy_price = document.get("price")
