@@ -123,6 +123,7 @@ def ping_data_electronics(db, ping_data, document):
         links = ping_data.get("fields")[-1].get("value").replace(document.get("website"), "Get Deal")
         links = f"**| {links}"
         end = " |**"
+        ping_data["description"] = f"> Profit of {round(ebay_product.get('mean_price') - document.get('price'), 2)}"
 
         ping_data, ebay_product = add_ebay_fields(db, document, ping_data)
 
@@ -217,12 +218,13 @@ def add_ebay_fields(db, document, ping_data):
             del ping_data["fields"][2]
             return ping_data, None
         
-        buy_price = document.get("price")
-        sell_price = ebay_product.get("mean_price")
-        profit_12_8_percent_fees = round((sell_price*0.872) - buy_price, 2)
-        profit_3_percent_fees = round((sell_price*0.97) - buy_price, 2)
+        #buy_price = document.get("price")
+        #sell_price = ebay_product.get("mean_price")
+        #profit_12_8_percent_fees = round((sell_price*0.872) - buy_price, 2)
+        #profit_3_percent_fees = round((sell_price*0.97) - buy_price, 2)
 
         # Add the profit fields
+        """
         ping_data["fields"].insert(
             0, 
             {
@@ -255,6 +257,7 @@ def add_ebay_fields(db, document, ping_data):
                 "inline": False
             }
         )
+        """
 
 
         # Add the ebay fields
@@ -262,24 +265,14 @@ def add_ebay_fields(db, document, ping_data):
             -1, 
             {
                 "name": "**eBay Mean Price**",
-                "value": f"£{ebay_product.get('mean_price')}",
-                "inline": True
+                "value": f"£{ebay_product.get('mean_price')}"
             }
         )
         ping_data["fields"].insert(
             -1, 
             {
                 "name": "**eBay Max Price**",
-                "value": f"£{ebay_product.get('max_price')}",
-                "inline": True
-            }
-        )
-        ping_data["fields"].insert(
-            -1, 
-            {
-                "name": "** **",
-                "value": "** **",
-                "inline": True
+                "value": f"£{ebay_product.get('max_price')}"
             }
         )
 

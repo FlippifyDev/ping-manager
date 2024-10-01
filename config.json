@@ -35,17 +35,12 @@
             {
                 "name": "**Buy Price**",
                 "value": "£{price}",
-                "inline": true
+                "inline": false
             },
             {
                 "name": "**RRP**",
                 "value": "£{rrp}",
-                "inline": true
-            },
-            {
-                "name": "** **",
-                "value": "** **",
-                "inline": true
+                "inline": false
             },
             {
                 "name": "**Links**",
