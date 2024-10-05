@@ -11,17 +11,19 @@ type_tiny = pyshorteners.Shortener()
 
 def handle_should_send_ping(db, before, after):
     try:
-        # Check if the price has changed and stock is available
-        if should_send_ping_default(before, after) is False:
-            return False
-        
         scraper_type = after.get("type")
+
+        # Check if the price has changed and stock is available
+        if should_send_ping_default(before, after, scraper_type=scraper_type) is False:
+            return False
         
         if scraper_type == "Electronics":
             return should_send_ping_electronics(db, before, after, minimum_sale=0.40)
         elif scraper_type == "Deal-Watch-UK":
             # When a document is added to the deal-watch collection then it must be sent
-            return True        
+            return True
+        elif scraper_type == "Restock-Info":
+            return should_send_ping_restock_info(after)  
         elif scraper_type == "Retiring-Sets-Deals":
             return should_send_ping_retiring_sets(before, after, minimum_sale=0.20)
         else:
@@ -32,7 +34,7 @@ def handle_should_send_ping(db, before, after):
 
 
 
-def should_send_ping_default(before, after, minimum_sale=0):
+def should_send_ping_default(before, after, minimum_sale=0, scraper_type=None):
     try:
         # Let the individual ping handlers handle when there is no prvious price
         if before is None:
@@ -50,13 +52,16 @@ def should_send_ping_default(before, after, minimum_sale=0):
         before_stock_available = before.get('stock_available', False)   
         # After document
         after_stock_available = after.get('stock_available')
-        after_rrp = after.get('rrp')
-        if after_rrp is None:
-            return False
 
-        sale = 1-(after_price / after_rrp)
-
-        if sale > minimum_sale:
+        if scraper_type != "Restock-Info":
+            after_rrp = after.get('rrp')
+            if after_rrp is None:
+                return False
+            sale = 1-(after_price / after_rrp)
+        else:
+            sale = 0
+        
+        if sale >= minimum_sale:
             if after_price < before_price and after_stock_available:
                 return True
             elif after_stock_available and not before_stock_available:
@@ -65,6 +70,21 @@ def should_send_ping_default(before, after, minimum_sale=0):
     
     except Exception as error:
         logger.error(error)
+
+
+
+def should_send_ping_restock_info(after, minimum_roi=0.15):
+    sold_last_7_days = after["sold_last_7_days"]
+    if sold_last_7_days is None:
+        return False
+    if sold_last_7_days <= 2:
+        return False
+    
+    roi = (after["ebay_mean_price"] - after["price"]) / after["price"]
+    if roi >= minimum_roi:
+        return True
+    return False
+    
 
 
 
@@ -109,6 +129,26 @@ def should_send_ping_retiring_sets(before, after, minimum_sale):
     
     return should_send_ping_default(before, after, minimum_sale)
 
+
+
+def ping_data_restock_info(ping_data, document):
+    try:
+        if document.get("maxOrderQuantity") is not None:
+            max_order_quantity_field = {"name": "**Max Order Quantity**", "value": document.get("maxOrderQuantity")}
+            ping_data["fields"].insert(-1, max_order_quantity_field)
+
+        if document.get("release_date") is not None:
+            release_date_field = {"name": "**Release Date**", "value": document.get("release_date")}
+            ping_data["fields"].insert(-1, release_date_field)
+
+        if document.get("stock_level") == "Low Stock":
+            low_stock_field = {"name": "**Stock**", "value": "Low"}
+            ping_data["fields"].insert(-1, low_stock_field)
+
+        return ping_data
+
+    except Exception as error:
+        logger.error(error)
 
 
 def ping_data_electronics(db, ping_data, document):

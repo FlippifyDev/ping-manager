@@ -82,5 +82,34 @@
         "thumbnail": {
             "url": "{image}"
         }
+    },
+    "Restock-Info": {
+        "title": "**{product_name}**",
+        "description": "> Price advantage of £{round(ebay_mean_price - price, 2)}",
+        "color": 38143,
+        "fields": [
+            {
+                "name": "**Buy Price**",
+                "value": "£{price}"
+            },
+            {
+                "name": "**Estimated Sell Price**",
+                "value": "£{ebay_mean_price}"
+            },
+            {
+                "name": "**Sales In The Last 7 Days | Month**",
+                "value": "{sold_last_7_days} | {sold_last_month}"
+            },
+            {
+                "name": "**Links**",
+                "value": "**| [Get Deal]({link}) | [eBay Sell History]({ebay_link}) |**"
+            }
+        ],
+        "author": {
+            "name": "Sale on {website}"
+        },
+        "thumbnail": {
+            "url": "{image}"
+        }
     }
 }

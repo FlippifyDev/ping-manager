@@ -1,5 +1,5 @@
 # Local Imports
-from .scraper_handers import ping_data_electronics, ping_data_retiring_sets
+from .scraper_handers import ping_data_electronics, ping_data_retiring_sets, ping_data_restock_info
 from .exceptions import InvalidScraperType
 
 # External Imports
@@ -84,7 +84,7 @@ def send_ping(db, document):
         time.sleep(0.5)
 
     except Exception as error:
-        logger.critical(msg=f"Couldn't send ping for ({document.get('product_name')}) on ({document.get('link')}) | {error}")
+        logger.critical(error)
 
 
 
@@ -134,9 +134,6 @@ def format_value(value, document):
         except KeyError:
             # If a key is not found in document, replace it with an empty string
             formatted_value = re.sub(r'\{([^}]*)\}', '', value)
-
-        # Encode to bytes, decode to ensure correct encoding handling
-        if document.get("type") != "Electronics":
             formatted_value = formatted_value.encode('latin1', errors='ignore').decode('utf-8', errors='ignore')
 
         return formatted_value
@@ -162,14 +159,15 @@ def create_embed(db, document):
         return [process_scrapers(db, ping_data, document)]
 
     except Exception as error:
-        logger.critical(msg=f"Couldn't create embed for ({document.get('product-name')}) on ({document.get('website')}) | {error}")
+        logger.critical(error)
 
 
 def process_scrapers(db, ping_data, document):
     try:
-
         if (document.get("type") == "Electronics"):
             ping_data = ping_data_electronics(db, ping_data, document) 
+        elif (document.get("type") == "Restock-Info"):
+            ping_data = ping_data_restock_info(ping_data, document) 
         elif (document.get("type") == "Retiring-Sets-Deals"):
             ping_data = ping_data_retiring_sets(db, ping_data, document) 
 
