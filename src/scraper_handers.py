@@ -163,9 +163,9 @@ def ping_data_electronics(db, ping_data, document):
         links = ping_data.get("fields")[-1].get("value").replace(document.get("website"), "Get Deal")
         links = f"**| {links}"
         end = " |**"
-        ping_data["description"] = f"> Profit of {round(ebay_product.get('mean_price') - document.get('price'), 2)}"
 
         ping_data, ebay_product = add_ebay_fields(db, document, ping_data)
+        ping_data["description"] = f"> Profit of {round(ebay_product.get('mean_price') - document.get('price'), 2)}"
 
         links = add_ebay_amazon_links(db, document, ebay_product, links, document.get('product_name'), col="electronics")
         links += end
