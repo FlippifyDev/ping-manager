@@ -53,7 +53,7 @@ def should_send_ping_default(before, after, minimum_sale=0, scraper_type=None):
         # After document
         after_stock_available = after.get('stock_available')
 
-        if scraper_type != "Restock-Info":
+        if scraper_type not in ["Restock-Info", "Deal-Watch-UK"]:
             after_rrp = after.get('rrp')
             if after_rrp is None:
                 return False
