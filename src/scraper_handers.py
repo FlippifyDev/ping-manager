@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 import pyshorteners
 import logging
 import re
@@ -24,6 +26,8 @@ def handle_should_send_ping(db, before, after):
             return True
         elif scraper_type == "Restock-Info":
             return should_send_ping_restock_info(after)  
+        elif scraper_type == "Sneaker-Release-Info":
+            return should_send_ping_sneaker_release_info(after)  
         elif scraper_type == "Retiring-Sets-Deals":
             return should_send_ping_retiring_sets(before, after, minimum_sale=0.20)
         else:
@@ -36,6 +40,9 @@ def handle_should_send_ping(db, before, after):
 
 def should_send_ping_default(before, after, minimum_sale=0, scraper_type=None):
     try:
+        if scraper_type == "Sneaker-Release-Info":
+            return True
+        
         # Let the individual ping handlers handle when there is no prvious price
         if before is None:
             return True
@@ -73,6 +80,10 @@ def should_send_ping_default(before, after, minimum_sale=0, scraper_type=None):
 
 
 
+def should_send_ping_sneaker_release_info(after):
+    return after.get("send_ping")
+
+
 def should_send_ping_restock_info(after, minimum_roi=0.15):
     sold_last_7_days = after["sold_last_7_days"]
     if sold_last_7_days is None:
@@ -85,7 +96,6 @@ def should_send_ping_restock_info(after, minimum_roi=0.15):
         return True
     return False
     
-
 
 
 def should_send_ping_electronics(db, before, after, minimum_sale, required_roi=0.10, minimum_profit=10):
@@ -151,6 +161,7 @@ def ping_data_restock_info(ping_data, document):
         logger.error(error)
 
 
+
 def ping_data_electronics(db, ping_data, document):
     """
     Args:
@@ -176,6 +187,38 @@ def ping_data_electronics(db, ping_data, document):
     except Exception as error:
         logger.error(error)
 
+
+def ping_data_sneaker_release_info(db, ping_data, document):
+    # Get the release date from the document
+    release_date = document["release_date"]
+
+    release_date_utc = release_date.astimezone(timezone.utc)
+    unix_timestamp = int(release_date_utc.timestamp())
+    discord_timestamp = f"<t:{unix_timestamp}:F>"
+
+    relative_time_until_release = f"<t:{unix_timestamp}:R>"
+
+    # Insert the release date into ping_data
+    ping_data["fields"].insert(
+        0,
+        {
+            "name": "**Time Until Release**",
+            "value": relative_time_until_release 
+        }
+    )
+
+    # Insert the release date into ping_data
+    ping_data["fields"].insert(
+        1,
+        {
+            "name": "**Release Date**",
+            "value": discord_timestamp 
+        }
+    )
+
+    db.update_product({"_id": document["_id"]}, {"$set": {"ping_sent": True, "send_ping": False}}, "sneaker-release-info")
+
+    return ping_data
 
 
 def ping_data_retiring_sets(db, ping_data, document):
@@ -244,6 +287,22 @@ def add_ebay_amazon_links(db, document, ebay_product, links, amazon_product_name
     except Exception as error:
         logger.error(error)
 
+
+def format_time_difference(release_date):
+    """Format the time difference from now until the release date."""
+    current_time = datetime.now(timezone.utc)
+    time_difference = release_date - current_time
+
+    days = time_difference.days
+    hours, remainder = divmod(time_difference.seconds, 3600)
+    minutes, _ = divmod(remainder, 60)
+
+    if days > 0:
+        return f"{days} day(s) and {hours} hour(s) left"
+    elif hours > 0:
+        return f"{hours} hour(s) and {minutes} minute(s) left"
+    else:
+        return f"{minutes} minute(s) left" if minutes > 0 else "Release is now!"
 
 
 def add_ebay_fields(db, document, ping_data):

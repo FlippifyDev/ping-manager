@@ -1,5 +1,5 @@
 # Local Imports
-from .scraper_handers import ping_data_electronics, ping_data_retiring_sets, ping_data_restock_info
+from .scraper_handers import *
 from .exceptions import InvalidScraperType
 
 # External Imports
@@ -46,7 +46,11 @@ def send_test_ping(change):
 
 def load_local_webhook(document):
     # Load the webhook from the config file
-    env_webhook_name = document.get("type") + "-" + document.get("region").upper()
+    webhook_region = document.get("region")
+    if webhook_region is None:
+        env_webhook_name = document.get("type")
+    else:
+        env_webhook_name = document.get("type") + "-" + webhook_region.upper()
     webhook_url = os.getenv(env_webhook_name)
     if webhook_url is not None:
         return webhook_url
@@ -170,6 +174,8 @@ def process_scrapers(db, ping_data, document):
             ping_data = ping_data_restock_info(ping_data, document) 
         elif (document.get("type") == "Retiring-Sets-Deals"):
             ping_data = ping_data_retiring_sets(db, ping_data, document) 
+        elif (document.get("type") == "Sneaker-Release-Info"):
+            ping_data = ping_data_sneaker_release_info(db, ping_data, document) 
 
         return ping_data
 

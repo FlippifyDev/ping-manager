@@ -22,6 +22,7 @@ class Database():
         subscription_servers_col = os.getenv("COL_SUBSCRIPTION_SERVERS")
         ebay_col =                 os.getenv("COL_EBAY")
         electronics_col =          os.getenv("COL_ELECTRONICS")
+        sneaker_release_info_col = os.getenv("COL_SNEAKER_RELEASE_INFO")
         deal_watch_col  =          os.getenv("COL_DEAL_WATCH")
         restock_info_col=          os.getenv("COL_RESTOCK_INFO")
         retiring_sets_col =        os.getenv("COL_RETIRING_SETS")
@@ -39,6 +40,7 @@ class Database():
         self.restock_info_col =          self.db[restock_info_col]
         self.retiring_sets_col =         self.db[retiring_sets_col]
         self.electronics_col =           self.db[electronics_col]
+        self.sneaker_release_info_col =  self.db[sneaker_release_info_col]
 
         # Collections Dictionary
         self.collections = {
@@ -48,6 +50,7 @@ class Database():
             electronics_col: self.electronics_col,
             deal_watch_col: self.deal_watch_col,
             restock_info_col: self.restock_info_col,
+            sneaker_release_info_col: self.sneaker_release_info_col,
             retiring_sets_col: self.retiring_sets_col,
         }
         self.runtime_collections = {
@@ -55,13 +58,18 @@ class Database():
             "electronics": self.electronics_col,
             "deal-watch": self.deal_watch_col,
             "restock-info": self.restock_info_col,
-            "retiring-sets": self.retiring_sets_col
+            "retiring-sets": self.retiring_sets_col,
+            "sneaker-release-info": self.sneaker_release_info_col
         }
 
 
     def fetch_product(self, filter, col):
         return self.runtime_collections[col].find_one(filter)
     
+
+    def update_product(self, filter, update, col):
+        self.runtime_collections[col].update_one(filter, update)
+
 
     def get_user_webhooks(self, deal_type):
         subscription_name_doc = self.config_products_col.find_one({"deal-type": deal_type}, {"subscription-name-server": 1})
@@ -82,6 +90,7 @@ class Database():
                 webhooks.append(webhook)
 
         return webhooks
+
 
     def __getitem__(self, col_name):
         return self.collections.get(col_name)

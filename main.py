@@ -50,6 +50,8 @@ async def listen_for_database_changes(collection):
     if "scraper" in col_name:
         if col_name == "scraper.deal-watch":
             pipeline = [{'$match': {'operationType': {"$in": ["insert"]}}}]
+        elif col_name == "scraper.sneaker-release-info":
+            pipeline = [{'$match': {'operationType': {"$in": ["insert", "update"]}}}]
         else:
             pipeline = [{'$match': {'operationType': {"$in": ["update"]}}}]
     else:
