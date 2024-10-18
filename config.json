@@ -116,16 +116,7 @@
         "title": "**{product_name}**",
         "url": "{link}",
         "color": 38143,
-        "fields": [
-            {
-                "name": "**Number Of Raffles**",
-                "value": "{no_raffles}"
-            },
-            {
-                "name": "**Regions**",
-                "value": "{', '.join(regions)}"
-            }
-        ],
+        "fields": [],
         "author": {
             "name": "Releasing on {website}"
         },

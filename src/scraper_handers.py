@@ -84,6 +84,7 @@ def should_send_ping_sneaker_release_info(after):
     return after.get("send_ping")
 
 
+
 def should_send_ping_restock_info(after, minimum_roi=0.15):
     sold_last_7_days = after["sold_last_7_days"]
     if sold_last_7_days is None:
@@ -188,6 +189,7 @@ def ping_data_electronics(db, ping_data, document):
         logger.error(error)
 
 
+
 def ping_data_sneaker_release_info(db, ping_data, document):
     # Get the release date from the document
     release_date = document["release_date"]
@@ -197,6 +199,17 @@ def ping_data_sneaker_release_info(db, ping_data, document):
     discord_timestamp = f"<t:{unix_timestamp}:F>"
 
     relative_time_until_release = f"<t:{unix_timestamp}:R>"
+    custom_fields = document.get("custom_fields")
+
+    # Add all custom_fields to the end of the fields list
+    for field_name, field_value in custom_fields.items():
+        ping_data["fields"].insert(
+        -1,
+        {
+            "name": f"**{field_name}**",
+            "value": field_value 
+        }
+    )    
 
     # Insert the release date into ping_data
     ping_data["fields"].insert(
@@ -219,6 +232,7 @@ def ping_data_sneaker_release_info(db, ping_data, document):
     db.update_product({"_id": document["_id"]}, {"$set": {"ping_sent": True, "send_ping": False}}, "sneaker-release-info")
 
     return ping_data
+
 
 
 def ping_data_retiring_sets(db, ping_data, document):
@@ -288,6 +302,7 @@ def add_ebay_amazon_links(db, document, ebay_product, links, amazon_product_name
         logger.error(error)
 
 
+
 def format_time_difference(release_date):
     """Format the time difference from now until the release date."""
     current_time = datetime.now(timezone.utc)
@@ -303,6 +318,7 @@ def format_time_difference(release_date):
         return f"{hours} hour(s) and {minutes} minute(s) left"
     else:
         return f"{minutes} minute(s) left" if minutes > 0 else "Release is now!"
+
 
 
 def add_ebay_fields(db, document, ping_data):
