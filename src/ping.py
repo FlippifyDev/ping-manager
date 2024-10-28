@@ -83,7 +83,7 @@ def send_ping(db, document):
         for user_webhook in user_webhooks:
             send_to_webhook(user_webhook)
 
-        logger.info(f"Ping sent for {document.get('product_name')} on {document.get('website')}")
+        logger.info(f"({document.get('type')}) Ping sent for {document.get('product_name')} on {document.get('website')}")
 
         time.sleep(0.5)
 
