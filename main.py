@@ -92,6 +92,8 @@ async def on_ready():
 
     collections_to_watch = [db["subscription.servers"]]
     collections_to_watch += [db[col] for col in db.config_products_col.distinct('data-table') if db[col] is not None]
+    collections_to_watch_string = ", ".join([col.name for col in collections_to_watch])
+    logger.info(f"Listening on ({collections_to_watch_string})")
     threads = []
 
     for collection in collections_to_watch:

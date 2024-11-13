@@ -203,6 +203,8 @@ def ping_data_sneaker_release_info(db, ping_data, document):
 
     # Add all custom_fields to the end of the fields list
     for field_name, field_value in custom_fields.items():
+        if isinstance(field_value, list):
+            field_value = ", ".join(field_value)
         ping_data["fields"].insert(
         -1,
         {
